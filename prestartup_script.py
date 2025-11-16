@@ -53,7 +53,7 @@ def copy_asset_files():
 
 
 def copy_workflow_files():
-    """Copy workflow examples to user/default/workflows/ with 'UniRig -' prefix"""
+    """Copy workflow examples to user/default/workflows/ with 'UNIRIG-' prefix in filename"""
     try:
         # Create target directory
         USER_WORKFLOWS_DIR.mkdir(parents=True, exist_ok=True)
@@ -61,7 +61,9 @@ def copy_workflow_files():
         # Process each workflow JSON file
         if WORKFLOWS_DIR.exists():
             for workflow_file in WORKFLOWS_DIR.glob("*.json"):
-                workflow_target = USER_WORKFLOWS_DIR / workflow_file.name
+                # Add UNIRIG- prefix to the filename
+                new_filename = f"UNIRIG-{workflow_file.name}"
+                workflow_target = USER_WORKFLOWS_DIR / new_filename
 
                 if not workflow_target.exists():
                     try:
@@ -86,15 +88,15 @@ def copy_workflow_files():
                         with open(workflow_target, 'w', encoding='utf-8') as f:
                             json.dump(workflow_data, f, indent=2)
 
-                        print(f"[UniRig] Copied workflow '{workflow_file.name}' to {workflow_target}")
+                        print(f"[UniRig] Copied workflow '{workflow_file.name}' to {new_filename}")
 
                     except json.JSONDecodeError as e:
                         print(f"[UniRig] Warning: Could not parse {workflow_file.name}: {e}")
                         # Fallback: just copy the file as-is
                         shutil.copy2(str(workflow_file), str(workflow_target))
-                        print(f"[UniRig] Copied workflow (without modification) to {workflow_target}")
+                        print(f"[UniRig] Copied workflow (without modification) to {new_filename}")
                 else:
-                    print(f"[UniRig] Workflow already exists at {workflow_target}")
+                    print(f"[UniRig] Workflow already exists: {new_filename}")
         else:
             print(f"[UniRig] Warning: Workflows directory not found at {WORKFLOWS_DIR}")
 

@@ -8,7 +8,7 @@ Repository: https://github.com/VAST-AI-Research/UniRig
 """
 
 import os
-from .unirig_nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
+from .nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
 # Set web directory for JavaScript extensions (FBX viewer widget)
 # This tells ComfyUI where to find our JavaScript files and HTML viewer

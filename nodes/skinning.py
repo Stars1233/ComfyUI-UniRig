@@ -10,6 +10,7 @@ import numpy as np
 import time
 import shutil
 import glob
+import json
 import folder_paths
 
 from ..constants import BLENDER_TIMEOUT, INFERENCE_TIMEOUT
@@ -236,6 +237,34 @@ class UniRigApplySkinningML:
                 "skinning_model": ("UNIRIG_SKINNING_MODEL", {
                     "tooltip": "Pre-loaded skinning model (from UniRigLoadSkinningModel)"
                 }),
+                "voxel_grid_size": ("INT", {
+                    "default": 196,
+                    "min": 64,
+                    "max": 512,
+                    "step": 64,
+                    "tooltip": "Voxel grid resolution for spatial weight distribution. Higher = better quality, more VRAM. Default: 196 (model trained with this)"
+                }),
+                "num_samples": ("INT", {
+                    "default": 32768,
+                    "min": 8192,
+                    "max": 131072,
+                    "step": 8192,
+                    "tooltip": "Number of surface samples for weight calculation. Higher = more accurate, slower. Default: 32768"
+                }),
+                "vertex_samples": ("INT", {
+                    "default": 8192,
+                    "min": 2048,
+                    "max": 32768,
+                    "step": 2048,
+                    "tooltip": "Number of vertex samples. Higher = more accurate vertex processing. Default: 8192"
+                }),
+                "voxel_mask_power": ("FLOAT", {
+                    "default": 0.5,
+                    "min": 0.1,
+                    "max": 5.0,
+                    "step": 0.1,
+                    "tooltip": "Power for voxel mask weight sharpness (alpha). Lower = smoother transitions. Default: 0.5 (model trained with this)"
+                }),
             }
         }
 
@@ -244,7 +273,9 @@ class UniRigApplySkinningML:
     FUNCTION = "apply_skinning"
     CATEGORY = "UniRig"
 
-    def apply_skinning(self, normalized_mesh, skeleton, skinning_model=None):
+    def apply_skinning(self, normalized_mesh, skeleton, skinning_model=None,
+                       voxel_grid_size=None, num_samples=None, vertex_samples=None,
+                       voxel_mask_power=None):
         print(f"[UniRigApplySkinningML] Starting ML skinning...")
 
         # Use pre-loaded model if available
@@ -350,6 +381,22 @@ class UniRigApplySkinningML:
         env = os.environ.copy()
         if BLENDER_EXE:
             env['BLENDER_EXE'] = BLENDER_EXE
+
+        # Build config overrides from optional parameters
+        config_overrides = {}
+        if voxel_grid_size is not None:
+            config_overrides['voxel_grid_size'] = voxel_grid_size
+        if num_samples is not None:
+            config_overrides['num_samples'] = num_samples
+        if vertex_samples is not None:
+            config_overrides['vertex_samples'] = vertex_samples
+        if voxel_mask_power is not None:
+            config_overrides['voxel_mask_power'] = voxel_mask_power
+
+        # Pass overrides via environment variable if any were specified
+        if config_overrides:
+            env['UNIRIG_CONFIG_OVERRIDES'] = json.dumps(config_overrides)
+            print(f"[UniRigApplySkinningML] Config overrides: {config_overrides}")
 
         result = subprocess.run(
             cmd,

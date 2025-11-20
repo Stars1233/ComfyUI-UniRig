@@ -2,46 +2,44 @@
 
 Automatic skeleton extraction for ComfyUI using UniRig (SIGGRAPH 2025). Self-contained with bundled Blender and UniRig code.
 
-![Skeleton](docs/skeleton.png)
-## Installation
+Rig your character mesh and skin it!
+![rigging_and_skinning](docs/rigging_and_skinning.png)
 
-### Via ComfyUI Manager (Recommended)
+Change their pose, export a new one
+![rigging_manipulation](docs/rigging_manipulation.png)
 
-1. Install through ComfyUI Manager
-2. Dependencies install automatically
-3. Blender auto-installs on first use
-4. Ready to go!
+## Video demos
 
-### Manual Installation
+Rigging/skinning workflow:
 
-1. Clone into ComfyUI custom nodes:
-   ```bash
-   cd ComfyUI/custom_nodes
-   git clone https://github.com/YOUR_USERNAME/ComfyUI-UniRig.git
-   ```
+Manipulation/saving/export:
 
-2. Install dependencies:
-   ```bash
-   cd ComfyUI-UniRig
-   pip install -r requirements.txt
-   ```
 
-3. Blender auto-installs on first use
+## Available Nodes
 
-## Usage
+### Model Loaders
+- **UniRig: Load Skeleton Model** - Loads the skeleton extraction model from HuggingFace
+- **UniRig: Load Skinning Model** - Loads the skinning weights model from HuggingFace
 
-**UniRig: Extract Skeleton** - Extracts skeleton from any 3D mesh
-- Input: TRIMESH mesh
-- Output: SKELETON (joints + bones, normalized to [-1,1])
+### Mesh I/O
+- **UniRig: Load Mesh** - Loads 3D mesh files (OBJ, FBX, GLB, etc.)
+- **UniRig: Save Mesh** - Saves mesh to file
 
-**UniRig: Extract Full Rig** - Extracts skeleton with skinning weights
-- Input: TRIMESH mesh
-- Output: TRIMESH rigged mesh
+### Skeleton Extraction
+- **UniRig: Extract Skeleton** - Extracts skeleton from any 3D mesh using ML
+  - Input: TRIMESH mesh, skeleton model
+  - Output: Normalized skeleton, normalized mesh, texture preview
 
-## Requirements
+### Skinning
+- **UniRig: Apply Skinning** - Applies ML-based skinning weights to mesh
+  - Input: Normalized mesh, skeleton, skinning model
+  - Output: Rigged mesh with skeleton and weights
 
-- CUDA GPU (8GB+ VRAM recommended)
-- PyTorch with CUDA support (usually already installed with ComfyUI)
+### Skeleton I/O & Export
+- **UniRig: Save Skeleton** - Saves skeleton to JSON file
+- **UniRig: Load Rigged Mesh** - Loads a rigged FBX file with skeleton
+- **UniRig: Preview Rigged Mesh** - Generates preview image of rigged mesh
+- **UniRig: Export Posed FBX** - Exports rigged mesh with custom pose to FBX/GLB
 
 ## Features
 
@@ -51,7 +49,7 @@ Automatic skeleton extraction for ComfyUI using UniRig (SIGGRAPH 2025). Self-con
 - **Fast**: Optimized inference pipeline
 - **Easy**: One-click install via ComfyUI Manager
 
-## Links
+## Credits
 
 - [UniRig Paper](https://zjp-shadow.github.io/works/UniRig/)
 - [UniRig GitHub](https://github.com/VAST-AI-Research/UniRig)

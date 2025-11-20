@@ -21,11 +21,6 @@ from .skeleton_io import (
     UniRigPreviewRiggedMesh,
     UniRigExportPosedFBX,
 )
-from .skeleton_processing import (
-    UniRigDenormalizeSkeleton,
-    UniRigValidateSkeleton,
-    UniRigPrepareSkeletonForSkinning,
-)
 from .skinning import UniRigApplySkinningMLNew
 from .mesh_io import UniRigLoadMesh, UniRigSaveMesh
 
@@ -37,9 +32,6 @@ NODE_CLASS_MAPPINGS = {
     "UniRigLoadRiggedMesh": UniRigLoadRiggedMesh,
     "UniRigPreviewRiggedMesh": UniRigPreviewRiggedMesh,
     "UniRigExportPosedFBX": UniRigExportPosedFBX,
-    "UniRigDenormalizeSkeleton": UniRigDenormalizeSkeleton,
-    "UniRigValidateSkeleton": UniRigValidateSkeleton,
-    "UniRigPrepareSkeletonForSkinning": UniRigPrepareSkeletonForSkinning,
     "UniRigApplySkinningMLNew": UniRigApplySkinningMLNew,
     "UniRigLoadMesh": UniRigLoadMesh,
     "UniRigSaveMesh": UniRigSaveMesh,
@@ -53,9 +45,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "UniRigLoadRiggedMesh": "UniRig: Load Rigged Mesh",
     "UniRigPreviewRiggedMesh": "UniRig: Preview Rigged Mesh",
     "UniRigExportPosedFBX": "UniRig: Export Posed FBX",
-    "UniRigDenormalizeSkeleton": "UniRig: Denormalize Skeleton",
-    "UniRigValidateSkeleton": "UniRig: Validate Skeleton",
-    "UniRigPrepareSkeletonForSkinning": "UniRig: Prepare Skeleton for Skinning",
     "UniRigApplySkinningMLNew": "UniRig: Apply Skinning",
     "UniRigLoadMesh": "UniRig: Load Mesh",
     "UniRigSaveMesh": "UniRig: Save Mesh",

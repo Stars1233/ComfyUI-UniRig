@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-unirig"
-description = "WORK IN PROGRESS. Automatic skeleton extraction for ComfyUI using UniRig (SIGGRAPH 2025). Self-contained with bundled Blender."
-version = "1.0.0"
+description = "Automatic skeleton extraction for ComfyUI using UniRig (SIGGRAPH 2025). Self-contained with bundled Blender. This node is a first draft! Please open a github issue if you have any feature requests or problems :)"
+version = "1.0.1"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 
@@ -46,7 +46,6 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/PozzettiAndrea/ComfyUI-UniRig"
 Documentation = "https://github.com/PozzettiAndrea/ComfyUI-UniRig#readme"
-"Bug Tracker" = "https://github.com/PozzettiAndrea/ComfyUI-UniRig/issues"
 
 # Comfy Registry configuration
 [tool.comfy]

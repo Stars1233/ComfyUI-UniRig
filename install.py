@@ -305,14 +305,21 @@ def download_file(url, dest_path):
     print(f"[UniRig Install] Downloading: {url}")
     print(f"[UniRig Install] Destination: {dest_path}")
 
+    last_printed_percent = [-1]  # Use list to allow modification in nested function
+
     def progress_hook(count, block_size, total_size):
         percent = int(count * block_size * 100 / total_size)
-        sys.stdout.write(f"\r[UniRig Install] Progress: {percent}%")
-        sys.stdout.flush()
+
+        # Only print every 10% to reduce verbosity
+        if percent >= last_printed_percent[0] + 10 or percent >= 100:
+            sys.stdout.write(f"\r[UniRig Install] Progress: {percent}%")
+            sys.stdout.flush()
+            last_printed_percent[0] = percent
 
     try:
         urllib.request.urlretrieve(url, dest_path, progress_hook)
         sys.stdout.write("\n")
+        sys.stdout.flush()
         print("[UniRig Install] Download complete!")
         return True
     except Exception as e:

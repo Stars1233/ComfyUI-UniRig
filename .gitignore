@@ -38,6 +38,5 @@ checkpoints/
 
 # Test and data files
 .pytest_cache/
-test_*.py
 /tmp/
 tests/outputs/

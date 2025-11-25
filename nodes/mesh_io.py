@@ -69,8 +69,15 @@ def load_mesh_file(file_path: str) -> Tuple[Optional[trimesh.Trimesh], str]:
 
         # Merge duplicate vertices and clean up
         mesh.merge_vertices()
-        mesh.remove_duplicate_faces()
-        mesh.remove_degenerate_faces()
+
+        # Remove duplicate and degenerate faces (trimesh 4.x compatible)
+        # unique_faces() returns boolean mask of non-duplicate faces
+        # nondegenerate_faces() returns boolean mask of non-degenerate faces
+        unique_mask = mesh.unique_faces()
+        nondegenerate_mask = mesh.nondegenerate_faces()
+        valid_faces_mask = unique_mask & nondegenerate_mask
+        if not valid_faces_mask.all():
+            mesh.update_faces(valid_faces_mask)
 
         verts_after = len(mesh.vertices)
         faces_after = len(mesh.faces)
@@ -105,8 +112,13 @@ def load_mesh_file(file_path: str) -> Tuple[Optional[trimesh.Trimesh], str]:
 
             # Clean up the mesh
             mesh.merge_vertices()
-            mesh.remove_duplicate_faces()
-            mesh.remove_degenerate_faces()
+
+            # Remove duplicate and degenerate faces (trimesh 4.x compatible)
+            unique_mask = mesh.unique_faces()
+            nondegenerate_mask = mesh.nondegenerate_faces()
+            valid_faces_mask = unique_mask & nondegenerate_mask
+            if not valid_faces_mask.all():
+                mesh.update_faces(valid_faces_mask)
 
             verts_after = len(mesh.vertices)
             faces_after = len(mesh.faces)

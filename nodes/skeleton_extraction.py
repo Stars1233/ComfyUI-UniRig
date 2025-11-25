@@ -43,6 +43,65 @@ except ImportError:
         create_placeholder_texture,
     )
 
+# VRoid to Mixamo bone name mapping (52 bones, 1:1 correspondence)
+VROID_TO_MIXAMO_BONE_MAP = {
+    # Body (22 bones)
+    "J_Bip_C_Hips": "mixamorig:Hips",
+    "J_Bip_C_Spine": "mixamorig:Spine",
+    "J_Bip_C_Chest": "mixamorig:Spine1",
+    "J_Bip_C_UpperChest": "mixamorig:Spine2",
+    "J_Bip_C_Neck": "mixamorig:Neck",
+    "J_Bip_C_Head": "mixamorig:Head",
+    "J_Bip_L_Shoulder": "mixamorig:LeftShoulder",
+    "J_Bip_L_UpperArm": "mixamorig:LeftArm",
+    "J_Bip_L_LowerArm": "mixamorig:LeftForeArm",
+    "J_Bip_L_Hand": "mixamorig:LeftHand",
+    "J_Bip_R_Shoulder": "mixamorig:RightShoulder",
+    "J_Bip_R_UpperArm": "mixamorig:RightArm",
+    "J_Bip_R_LowerArm": "mixamorig:RightForeArm",
+    "J_Bip_R_Hand": "mixamorig:RightHand",
+    "J_Bip_L_UpperLeg": "mixamorig:LeftUpLeg",
+    "J_Bip_L_LowerLeg": "mixamorig:LeftLeg",
+    "J_Bip_L_Foot": "mixamorig:LeftFoot",
+    "J_Bip_L_ToeBase": "mixamorig:LeftToeBase",
+    "J_Bip_R_UpperLeg": "mixamorig:RightUpLeg",
+    "J_Bip_R_LowerLeg": "mixamorig:RightLeg",
+    "J_Bip_R_Foot": "mixamorig:RightFoot",
+    "J_Bip_R_ToeBase": "mixamorig:RightToeBase",
+    # Left Hand (15 bones)
+    "J_Bip_L_Thumb1": "mixamorig:LeftHandThumb1",
+    "J_Bip_L_Thumb2": "mixamorig:LeftHandThumb2",
+    "J_Bip_L_Thumb3": "mixamorig:LeftHandThumb3",
+    "J_Bip_L_Index1": "mixamorig:LeftHandIndex1",
+    "J_Bip_L_Index2": "mixamorig:LeftHandIndex2",
+    "J_Bip_L_Index3": "mixamorig:LeftHandIndex3",
+    "J_Bip_L_Middle1": "mixamorig:LeftHandMiddle1",
+    "J_Bip_L_Middle2": "mixamorig:LeftHandMiddle2",
+    "J_Bip_L_Middle3": "mixamorig:LeftHandMiddle3",
+    "J_Bip_L_Ring1": "mixamorig:LeftHandRing1",
+    "J_Bip_L_Ring2": "mixamorig:LeftHandRing2",
+    "J_Bip_L_Ring3": "mixamorig:LeftHandRing3",
+    "J_Bip_L_Little1": "mixamorig:LeftHandPinky1",
+    "J_Bip_L_Little2": "mixamorig:LeftHandPinky2",
+    "J_Bip_L_Little3": "mixamorig:LeftHandPinky3",
+    # Right Hand (15 bones)
+    "J_Bip_R_Thumb1": "mixamorig:RightHandThumb1",
+    "J_Bip_R_Thumb2": "mixamorig:RightHandThumb2",
+    "J_Bip_R_Thumb3": "mixamorig:RightHandThumb3",
+    "J_Bip_R_Index1": "mixamorig:RightHandIndex1",
+    "J_Bip_R_Index2": "mixamorig:RightHandIndex2",
+    "J_Bip_R_Index3": "mixamorig:RightHandIndex3",
+    "J_Bip_R_Middle1": "mixamorig:RightHandMiddle1",
+    "J_Bip_R_Middle2": "mixamorig:RightHandMiddle2",
+    "J_Bip_R_Middle3": "mixamorig:RightHandMiddle3",
+    "J_Bip_R_Ring1": "mixamorig:RightHandRing1",
+    "J_Bip_R_Ring2": "mixamorig:RightHandRing2",
+    "J_Bip_R_Ring3": "mixamorig:RightHandRing3",
+    "J_Bip_R_Little1": "mixamorig:RightHandPinky1",
+    "J_Bip_R_Little2": "mixamorig:RightHandPinky2",
+    "J_Bip_R_Little3": "mixamorig:RightHandPinky3",
+}
+
 # In-process model cache module
 _MODEL_CACHE_MODULE = None
 
@@ -92,9 +151,9 @@ class UniRigExtractSkeletonNew:
                                "tooltip": "Random seed for skeleton generation variation"}),
             },
             "optional": {
-                "skeleton_template": (["auto", "vroid", "articulationxl"], {
+                "skeleton_template": (["auto", "vroid", "mixamo", "articulationxl"], {
                     "default": "auto",
-                    "tooltip": "Skeleton template: auto (let model decide), vroid (52 bones: 22 body + 30 hand), articulationxl (generic/flexible)"
+                    "tooltip": "Skeleton template: auto (let model decide), vroid (52 bones), mixamo (Mixamo-compatible 52 bones), articulationxl (generic/flexible)"
                 }),
                 "target_face_count": ("INT", {
                     "default": 50000,
@@ -116,6 +175,14 @@ class UniRigExtractSkeletonNew:
         total_start = time.time()
         print(f"[UniRigExtractSkeletonNew] Starting skeleton extraction (cached model only)...")
         print(f"[UniRigExtractSkeletonNew] Skeleton template: {skeleton_template}")
+
+        # Track if we need to remap to mixamo naming
+        remap_to_mixamo = (skeleton_template == "mixamo")
+
+        # If mixamo is requested, use vroid for extraction (model trained on vroid), then remap names
+        if skeleton_template == "mixamo":
+            skeleton_template = "vroid"
+            print(f"[UniRigExtractSkeletonNew] Mixamo requested, using vroid extraction + name remapping")
 
         # Validate model is provided
         if skeleton_model is None:
@@ -524,6 +591,17 @@ class UniRigExtractSkeletonNew:
                         else:
                             tails[i] = bone_joints[i] + np.array([0, 0.1, 0])
 
+            # Remap bone names if mixamo was requested (applies to both branches above)
+            if remap_to_mixamo:
+                remapped_names = []
+                for name in names_list:
+                    if name in VROID_TO_MIXAMO_BONE_MAP:
+                        remapped_names.append(VROID_TO_MIXAMO_BONE_MAP[name])
+                    else:
+                        remapped_names.append(name)  # Keep original if not in map
+                names_list = remapped_names
+                print(f"[UniRigExtractSkeletonNew] Remapped {len(names_list)} bones to Mixamo naming")
+
             # Save as RawData NPZ for skinning phase
             persistent_npz = os.path.join(folder_paths.get_temp_directory(), f"skeleton_{seed}.npz")
             np.savez(
@@ -580,6 +658,7 @@ class UniRigExtractSkeletonNew:
                 "skeleton_npz_path": persistent_npz,
                 "bone_names": names_list,
                 "bone_parents": parents_list,
+                "output_format": "mixamo" if remap_to_mixamo else "vroid",
             }
 
             if 'bone_to_head_vertex' in skeleton_data:

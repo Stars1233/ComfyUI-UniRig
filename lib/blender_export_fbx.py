@@ -9,8 +9,9 @@ import sys
 import os
 import pickle
 import numpy as np
-from mathutils import Vector
+from mathutils import Vector, Matrix
 from collections import defaultdict
+import math
 import tempfile
 import base64
 import struct
@@ -324,6 +325,48 @@ try:
         bone = edit_bones.get(names[i])
         bone.head = Vector((joints[i, 0], joints[i, 1], joints[i, 2]))
         bone.tail = Vector((tails[i, 0], tails[i, 1], tails[i, 2]))
+
+    # Set bone roll for SMPL compatibility
+    # SMPL motion expects local X = bone direction, but Blender has local Y = bone direction
+    # We set roll so that the bone's local coordinate system matches what SMPL expects
+    # after the basis transformation: SMPL_local = Basis^T @ Blender_local @ Basis
+    # The goal is to set roll so that rotations can be applied with a consistent basis
+    is_smpl_skeleton = all(n in ['Pelvis', 'L_Hip', 'R_Hip', 'Spine1', 'L_Knee', 'R_Knee',
+                                  'Spine2', 'L_Ankle', 'R_Ankle', 'Spine3', 'L_Foot', 'R_Foot',
+                                  'Neck', 'L_Collar', 'R_Collar', 'Head', 'L_Shoulder', 'R_Shoulder',
+                                  'L_Elbow', 'R_Elbow', 'L_Wrist', 'R_Wrist'] for n in names)
+
+    if is_smpl_skeleton:
+        print("[Blender FBX Export] Setting bone rolls for SMPL compatibility...")
+        for i in range(J):
+            bone = edit_bones.get(names[i])
+            if bone:
+                # Get bone direction
+                direction = (bone.tail - bone.head).normalized()
+                dx, dy, dz = direction.x, direction.y, direction.z
+
+                # Set roll based on bone direction to get consistent local axes
+                # For SMPL, we want the local coordinate system such that:
+                # - Y axis = bone direction (Blender default)
+                # - X and Z axes are consistent for the basis transformation
+
+                # Use Blender's align_roll to set the Z-axis direction
+                # Then the X axis is determined by cross product
+
+                if abs(dx) > 0.9:  # Arms (bone along ±X)
+                    # For arms, we want local Z to point up (world +Y in SMPL coords)
+                    bone.align_roll(Vector((0, 1, 0)))  # Z up
+                elif abs(dy) > 0.9:  # Spine/Legs (bone along ±Y)
+                    # For vertical bones, we want local Z to point back (world +Z in SMPL coords)
+                    bone.align_roll(Vector((0, 0, 1)))  # Z back
+                elif abs(dz) > 0.9:  # Feet (bone along ±Z)
+                    # For feet, we want local Z to point up (world +Y)
+                    bone.align_roll(Vector((0, 1, 0)))  # Z up
+                else:
+                    # Default: use world up as reference
+                    bone.align_roll(Vector((0, 1, 0)))
+
+        print("[Blender FBX Export] ✓ Bone rolls set for SMPL compatibility")
 
     # Add skinning weights if vertices and skin provided
     if vertices is not None and skin is not None:

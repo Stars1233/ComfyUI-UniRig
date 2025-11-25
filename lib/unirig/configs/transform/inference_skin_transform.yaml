@@ -5,7 +5,7 @@ sampler_config: &sampler_config
 
 tail_config: &tail_config
   copy_joint_to_tail: False # Be careful ! If tail is important, keep it False !!!
-  connect_tail_to_unique_son: True
+  connect_tail_to_unique_son: False  # Disabled to preserve canonical bone orientations for SMPL
 
 order_config: &order_config
   skeleton_path:

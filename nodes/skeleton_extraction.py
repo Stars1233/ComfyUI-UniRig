@@ -102,6 +102,99 @@ VROID_TO_MIXAMO_BONE_MAP = {
     "J_Bip_R_Little3": "mixamorig:RightHandPinky3",
 }
 
+# VRoid to SMPL bone mapping (22 joints - maps VRoid bones to SMPL joint names)
+VROID_TO_SMPL_BONE_MAP = {
+    "J_Bip_C_Hips": "Pelvis",           # 0
+    "J_Bip_L_UpperLeg": "L_Hip",         # 1
+    "J_Bip_R_UpperLeg": "R_Hip",         # 2
+    "J_Bip_C_Spine": "Spine1",           # 3
+    "J_Bip_L_LowerLeg": "L_Knee",        # 4
+    "J_Bip_R_LowerLeg": "R_Knee",        # 5
+    "J_Bip_C_Chest": "Spine2",           # 6
+    "J_Bip_L_Foot": "L_Ankle",           # 7
+    "J_Bip_R_Foot": "R_Ankle",           # 8
+    "J_Bip_C_UpperChest": "Spine3",      # 9
+    "J_Bip_L_ToeBase": "L_Foot",         # 10
+    "J_Bip_R_ToeBase": "R_Foot",         # 11
+    "J_Bip_C_Neck": "Neck",              # 12
+    "J_Bip_L_Shoulder": "L_Collar",      # 13
+    "J_Bip_R_Shoulder": "R_Collar",      # 14
+    "J_Bip_C_Head": "Head",              # 15
+    "J_Bip_L_UpperArm": "L_Shoulder",    # 16
+    "J_Bip_R_UpperArm": "R_Shoulder",    # 17
+    "J_Bip_L_LowerArm": "L_Elbow",       # 18
+    "J_Bip_R_LowerArm": "R_Elbow",       # 19
+    "J_Bip_L_Hand": "L_Wrist",           # 20
+    "J_Bip_R_Hand": "R_Wrist",           # 21
+}
+
+# SMPL joint names in order (22 joints)
+SMPL_JOINT_NAMES = [
+    'Pelvis', 'L_Hip', 'R_Hip', 'Spine1', 'L_Knee', 'R_Knee',
+    'Spine2', 'L_Ankle', 'R_Ankle', 'Spine3', 'L_Foot', 'R_Foot',
+    'Neck', 'L_Collar', 'R_Collar', 'Head', 'L_Shoulder', 'R_Shoulder',
+    'L_Elbow', 'R_Elbow', 'L_Wrist', 'R_Wrist'
+]
+
+# SMPL parent hierarchy (22 joints) - index of parent for each joint
+SMPL_PARENTS = [
+    -1,  # 0: Pelvis (root)
+    0,   # 1: L_Hip -> Pelvis
+    0,   # 2: R_Hip -> Pelvis
+    0,   # 3: Spine1 -> Pelvis
+    1,   # 4: L_Knee -> L_Hip
+    2,   # 5: R_Knee -> R_Hip
+    3,   # 6: Spine2 -> Spine1
+    4,   # 7: L_Ankle -> L_Knee
+    5,   # 8: R_Ankle -> R_Knee
+    6,   # 9: Spine3 -> Spine2
+    7,   # 10: L_Foot -> L_Ankle
+    8,   # 11: R_Foot -> R_Ankle
+    9,   # 12: Neck -> Spine3
+    9,   # 13: L_Collar -> Spine3
+    9,   # 14: R_Collar -> Spine3
+    12,  # 15: Head -> Neck
+    13,  # 16: L_Shoulder -> L_Collar
+    14,  # 17: R_Shoulder -> R_Collar
+    16,  # 18: L_Elbow -> L_Shoulder
+    17,  # 19: R_Elbow -> R_Shoulder
+    18,  # 20: L_Wrist -> L_Elbow
+    19,  # 21: R_Wrist -> R_Elbow
+]
+
+# SMPL canonical bone directions (unit vectors pointing from head to tail)
+# These define how each bone should be oriented in rest pose
+# Coordinate system: Blender default (X=right, Y=forward, Z=up)
+# These get rotated to SMPL coords (Y-up) when skeleton_template="smpl"
+# For symmetric bones, L and R have mirrored X component (left/right)
+SMPL_BONE_DIRECTIONS = {
+    'Pelvis':     [0, 0, 1],      # Up +Z (toward spine)
+    'L_Hip':      [0, 0, -1],     # Down -Z (toward knee)
+    'R_Hip':      [0, 0, -1],     # Down -Z (toward knee)
+    'Spine1':     [0, 0, 1],      # Up +Z
+    'L_Knee':     [0, 0, -1],     # Down -Z (toward ankle)
+    'R_Knee':     [0, 0, -1],     # Down -Z (toward ankle)
+    'Spine2':     [0, 0, 1],      # Up +Z
+    'L_Ankle':    [0, 1, 0],      # Forward +Y (toward toe)
+    'R_Ankle':    [0, 1, 0],      # Forward +Y (toward toe)
+    'Spine3':     [0, 0, 1],      # Up +Z
+    'L_Foot':     [0, 1, 0],      # Forward +Y
+    'R_Foot':     [0, 1, 0],      # Forward +Y
+    'Neck':       [0, 0, 1],      # Up +Z
+    'L_Collar':   [1, 0, 0],      # Left +X (toward shoulder)
+    'R_Collar':   [-1, 0, 0],     # Right -X (toward shoulder)
+    'Head':       [0, 0, 1],      # Up +Z
+    'L_Shoulder': [1, 0, 0],      # Left +X (toward elbow)
+    'R_Shoulder': [-1, 0, 0],     # Right -X (toward elbow)
+    'L_Elbow':    [1, 0, 0],      # Left +X (toward wrist)
+    'R_Elbow':    [-1, 0, 0],     # Right -X (toward wrist)
+    'L_Wrist':    [1, 0, 0],      # Left +X (toward hand)
+    'R_Wrist':    [-1, 0, 0],     # Right -X (toward hand)
+}
+
+# Default bone length for SMPL (used when computing tails)
+SMPL_DEFAULT_BONE_LENGTH = 0.1
+
 # In-process model cache module
 _MODEL_CACHE_MODULE = None
 
@@ -151,9 +244,9 @@ class UniRigExtractSkeletonNew:
                                "tooltip": "Random seed for skeleton generation variation"}),
             },
             "optional": {
-                "skeleton_template": (["auto", "vroid", "mixamo", "articulationxl"], {
+                "skeleton_template": (["auto", "vroid", "mixamo", "smpl", "articulationxl"], {
                     "default": "auto",
-                    "tooltip": "Skeleton template: auto (let model decide), vroid (52 bones), mixamo (Mixamo-compatible 52 bones), articulationxl (generic/flexible)"
+                    "tooltip": "Skeleton template: auto (let model decide), vroid (52 bones), mixamo (Mixamo-compatible 52 bones), smpl (22 joints, SMPL-compatible for direct motion application), articulationxl (generic/flexible)"
                 }),
                 "target_face_count": ("INT", {
                     "default": 50000,
@@ -176,13 +269,19 @@ class UniRigExtractSkeletonNew:
         print(f"[UniRigExtractSkeletonNew] Starting skeleton extraction (cached model only)...")
         print(f"[UniRigExtractSkeletonNew] Skeleton template: {skeleton_template}")
 
-        # Track if we need to remap to mixamo naming
+        # Track if we need to remap to mixamo or smpl naming
         remap_to_mixamo = (skeleton_template == "mixamo")
+        remap_to_smpl = (skeleton_template == "smpl")
 
         # If mixamo is requested, use vroid for extraction (model trained on vroid), then remap names
         if skeleton_template == "mixamo":
             skeleton_template = "vroid"
             print(f"[UniRigExtractSkeletonNew] Mixamo requested, using vroid extraction + name remapping")
+
+        # If smpl is requested, use vroid for extraction, then filter to 22 SMPL joints
+        if skeleton_template == "smpl":
+            skeleton_template = "vroid"
+            print(f"[UniRigExtractSkeletonNew] SMPL requested, using vroid extraction + SMPL conversion")
 
         # Validate model is provided
         if skeleton_model is None:
@@ -602,6 +701,93 @@ class UniRigExtractSkeletonNew:
                 names_list = remapped_names
                 print(f"[UniRigExtractSkeletonNew] Remapped {len(names_list)} bones to Mixamo naming")
 
+            # Convert to SMPL skeleton if requested (filter 52 VRoid bones to 22 SMPL joints)
+            if remap_to_smpl:
+                print(f"[UniRigExtractSkeletonNew] Converting to SMPL skeleton (22 joints)...")
+
+                # Build VRoid name -> index mapping from current skeleton
+                vroid_name_to_idx = {name: i for i, name in enumerate(names_list)}
+
+                # Filter to only SMPL joints (22 out of 52)
+                smpl_joints = []
+                missing_joints = []
+
+                for smpl_name in SMPL_JOINT_NAMES:
+                    # Find corresponding VRoid bone name
+                    vroid_name = None
+                    for vn, sn in VROID_TO_SMPL_BONE_MAP.items():
+                        if sn == smpl_name:
+                            vroid_name = vn
+                            break
+
+                    if vroid_name and vroid_name in vroid_name_to_idx:
+                        idx = vroid_name_to_idx[vroid_name]
+                        smpl_joints.append(bone_joints[idx])
+                    else:
+                        missing_joints.append(smpl_name)
+                        # Use zero position as fallback (shouldn't happen)
+                        smpl_joints.append(np.array([0, 0, 0]))
+
+                if missing_joints:
+                    print(f"[UniRigExtractSkeletonNew] Warning: Missing VRoid bones for SMPL joints: {missing_joints}")
+
+                # Replace with SMPL data
+                bone_joints = np.array(smpl_joints)
+                names_list = list(SMPL_JOINT_NAMES)
+                parents_list = [None if p == -1 else p for p in SMPL_PARENTS]
+
+                # Compute tails using CANONICAL SMPL bone directions (for symmetric rest pose)
+                # This ensures left/right bones have mirrored orientations
+                num_smpl_joints = len(SMPL_JOINT_NAMES)
+                tails = np.zeros((num_smpl_joints, 3))
+
+                for i, joint_name in enumerate(SMPL_JOINT_NAMES):
+                    # Get canonical bone direction
+                    direction = np.array(SMPL_BONE_DIRECTIONS.get(joint_name, [0, 1, 0]))
+
+                    # Compute bone length from child distance or use default
+                    children = [j for j, p in enumerate(parents_list) if p == i]
+                    if children:
+                        # Use distance to first child as bone length
+                        child_idx = children[0]
+                        bone_length = np.linalg.norm(bone_joints[child_idx] - bone_joints[i])
+                        if bone_length < 0.01:
+                            bone_length = SMPL_DEFAULT_BONE_LENGTH
+                    else:
+                        # Leaf bone - use default length
+                        bone_length = SMPL_DEFAULT_BONE_LENGTH
+
+                    # Tail = head + direction * length
+                    tails[i] = bone_joints[i] + direction * bone_length
+
+                print(f"[UniRigExtractSkeletonNew] Converted to SMPL: {len(names_list)} joints with canonical bone orientations")
+
+                # Rotate everything from Blender Z-up to SMPL Y-up coordinate system
+                # This is a -90° rotation around X axis: (x, y, z) -> (x, z, -y)
+                # SMPL uses: X=right, Y=up, Z=back
+                # Blender uses: X=right, Y=forward, Z=up
+                def rotate_to_smpl_coords(points):
+                    """Rotate points from Blender coords (Z-up) to SMPL coords (Y-up)"""
+                    rotated = np.zeros_like(points)
+                    rotated[..., 0] = points[..., 0]   # X stays X
+                    rotated[..., 1] = points[..., 2]   # Z becomes Y (up)
+                    rotated[..., 2] = -points[..., 1]  # -Y becomes Z (back)
+                    return rotated
+
+                # Rotate joints, tails, mesh vertices, and normals
+                bone_joints = rotate_to_smpl_coords(bone_joints)
+                tails = rotate_to_smpl_coords(tails)
+                mesh_vertices = rotate_to_smpl_coords(mesh_vertices)
+                vertex_normals = rotate_to_smpl_coords(vertex_normals)
+                face_normals = rotate_to_smpl_coords(face_normals)
+
+                # Update mesh bounds after rotation
+                mesh_bounds_min = mesh_vertices.min(axis=0)
+                mesh_bounds_max = mesh_vertices.max(axis=0)
+                mesh_center = (mesh_bounds_min + mesh_bounds_max) / 2
+
+                print(f"[UniRigExtractSkeletonNew] Rotated to SMPL Y-up coordinate system")
+
             # Save as RawData NPZ for skinning phase
             persistent_npz = os.path.join(folder_paths.get_temp_directory(), f"skeleton_{seed}.npz")
             np.savez(
@@ -658,7 +844,7 @@ class UniRigExtractSkeletonNew:
                 "skeleton_npz_path": persistent_npz,
                 "bone_names": names_list,
                 "bone_parents": parents_list,
-                "output_format": "mixamo" if remap_to_mixamo else "vroid",
+                "output_format": "smpl" if remap_to_smpl else ("mixamo" if remap_to_mixamo else "vroid"),
             }
 
             if 'bone_to_head_vertex' in skeleton_data:

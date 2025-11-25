@@ -762,7 +762,83 @@ class UniRigExtractSkeletonNew:
 
                 print(f"[UniRigExtractSkeletonNew] Converted to SMPL: {len(names_list)} joints with canonical bone orientations")
 
-                # Rotate everything from Blender Z-up to SMPL Y-up coordinate system
+                # === STEP 1: Detect current facing direction and rotate to SMPL standard ===
+                # SMPL standard (before Y-up conversion): facing -Y, lateral along X, up along Z
+                # We need to detect current orientation and rotate to match
+
+                # Get shoulder positions to determine lateral axis
+                l_shoulder_idx = names_list.index('L_Shoulder')
+                r_shoulder_idx = names_list.index('R_Shoulder')
+                pelvis_idx = names_list.index('Pelvis')
+                head_idx = names_list.index('Head') if 'Head' in names_list else names_list.index('Neck')
+
+                l_shoulder = bone_joints[l_shoulder_idx]
+                r_shoulder = bone_joints[r_shoulder_idx]
+                pelvis = bone_joints[pelvis_idx]
+                head = bone_joints[head_idx]
+
+                # Compute current orientation vectors
+                shoulder_vec = r_shoulder - l_shoulder  # Left to Right
+                spine_vec = head - pelvis  # Up direction
+
+                # Normalize
+                shoulder_vec = shoulder_vec / (np.linalg.norm(shoulder_vec) + 1e-8)
+                spine_vec = spine_vec / (np.linalg.norm(spine_vec) + 1e-8)
+
+                # Forward = cross(right, up) for right-handed system
+                forward_vec = np.cross(shoulder_vec, spine_vec)
+                forward_vec = forward_vec / (np.linalg.norm(forward_vec) + 1e-8)
+
+                print(f"[UniRigExtractSkeletonNew] Current orientation - Lateral: {shoulder_vec}, Up: {spine_vec}, Forward: {forward_vec}")
+
+                # Determine which axis is lateral (should be X for SMPL)
+                # In Blender Z-up, SMPL standard is: lateral=X, up=Z, forward=-Y
+                lateral_axis = np.argmax(np.abs(shoulder_vec))
+                up_axis = np.argmax(np.abs(spine_vec))
+
+                # Check if we need to rotate around Z axis to align lateral with X
+                if lateral_axis == 0:
+                    # Already aligned with X
+                    print(f"[UniRigExtractSkeletonNew] Lateral axis already aligned with X")
+                    z_rotation_angle = 0
+                elif lateral_axis == 1:
+                    # Lateral is along Y, need to rotate 90° around Z
+                    z_rotation_angle = np.pi / 2 if shoulder_vec[1] > 0 else -np.pi / 2
+                    print(f"[UniRigExtractSkeletonNew] Rotating {np.degrees(z_rotation_angle):.0f}° around Z to align lateral with X")
+                else:
+                    # Lateral is along Z (our current case), need to rotate around up axis
+                    # This shouldn't happen in Z-up Blender coords, but handle it
+                    z_rotation_angle = 0
+                    print(f"[UniRigExtractSkeletonNew] Unusual: Lateral along Z axis")
+
+                # For the current mesh: lateral is along Y (in original coords), up is along Z
+                # After Z-up to Y-up conversion, this becomes: lateral along Y, up along Y - wrong!
+                # We need to rotate so lateral is along X before the conversion
+
+                # Actually, let's detect more carefully:
+                # If shoulders differ mainly in Y, we need 90° rotation around Z
+                if abs(shoulder_vec[1]) > abs(shoulder_vec[0]) and abs(shoulder_vec[1]) > 0.5:
+                    # Lateral is along Y, rotate 90° around Z
+                    cos_a, sin_a = 0, 1  # 90 degrees
+                    if shoulder_vec[1] < 0:
+                        sin_a = -1  # -90 degrees
+
+                    def rotate_around_z(points):
+                        """Rotate points 90° around Z axis"""
+                        rotated = np.zeros_like(points)
+                        rotated[..., 0] = cos_a * points[..., 0] - sin_a * points[..., 1]
+                        rotated[..., 1] = sin_a * points[..., 0] + cos_a * points[..., 1]
+                        rotated[..., 2] = points[..., 2]
+                        return rotated
+
+                    print(f"[UniRigExtractSkeletonNew] Rotating 90° around Z to align shoulders with X axis")
+                    bone_joints = rotate_around_z(bone_joints)
+                    tails = rotate_around_z(tails)
+                    mesh_vertices = rotate_around_z(mesh_vertices)
+                    vertex_normals = rotate_around_z(vertex_normals)
+                    face_normals = rotate_around_z(face_normals)
+
+                # === STEP 2: Rotate from Blender Z-up to SMPL Y-up ===
                 # This is a -90° rotation around X axis: (x, y, z) -> (x, z, -y)
                 # SMPL uses: X=right, Y=up, Z=back
                 # Blender uses: X=right, Y=forward, Z=up
@@ -780,6 +856,23 @@ class UniRigExtractSkeletonNew:
                 mesh_vertices = rotate_to_smpl_coords(mesh_vertices)
                 vertex_normals = rotate_to_smpl_coords(vertex_normals)
                 face_normals = rotate_to_smpl_coords(face_normals)
+
+                # === STEP 3: Ensure correct handedness (L_Shoulder at +X, R_Shoulder at -X) ===
+                # After rotation, check if left/right are correct
+                l_shoulder_new = bone_joints[l_shoulder_idx]
+                r_shoulder_new = bone_joints[r_shoulder_idx]
+
+                # In SMPL, L_Shoulder should have positive X, R_Shoulder negative X
+                if l_shoulder_new[0] < r_shoulder_new[0]:
+                    # Left/Right are swapped, need to mirror along X
+                    print(f"[UniRigExtractSkeletonNew] Mirroring along X to fix left/right")
+                    bone_joints[..., 0] = -bone_joints[..., 0]
+                    tails[..., 0] = -tails[..., 0]
+                    mesh_vertices[..., 0] = -mesh_vertices[..., 0]
+                    vertex_normals[..., 0] = -vertex_normals[..., 0]
+                    face_normals[..., 0] = -face_normals[..., 0]
+                    # Also need to flip face winding
+                    mesh_faces = mesh_faces[:, ::-1]
 
                 # Update mesh bounds after rotation
                 mesh_bounds_min = mesh_vertices.min(axis=0)

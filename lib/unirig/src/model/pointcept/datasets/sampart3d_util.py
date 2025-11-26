@@ -3,12 +3,6 @@ import trimesh
 import os
 import json
 import math
-try:
-    import open3d as o3d
-    OPEN3D_AVAILABLE = True
-except ImportError:
-    o3d = None
-    OPEN3D_AVAILABLE = False
 import torch
 
 
@@ -120,10 +114,11 @@ def save_point_cloud(coord, color=None, file_path="pc.ply", logger=None):
     coord = np.array(coord)
     if color is not None:
         color = np.array(color)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(coord)
-    pcd.colors = o3d.utility.Vector3dVector(np.ones_like(coord) if color is None else color)
-    o3d.io.write_point_cloud(file_path, pcd)
+        # Convert color from [0,1] float to [0,255] uint8 if needed
+        if color.max() <= 1.0:
+            color = (color * 255).astype(np.uint8)
+    pcd = trimesh.PointCloud(vertices=coord, colors=color)
+    pcd.export(file_path)
     if logger is not None:
         logger.info(f"Save Point Cloud to: {file_path}")
 

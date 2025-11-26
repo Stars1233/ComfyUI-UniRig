@@ -331,6 +331,8 @@ class UniRigLoadRiggedMesh:
                         "extents": extents.tolist()
                     }
 
+                    # Close npz file before removing (required for Windows)
+                    data.close()
                     os.remove(mesh_npz)
 
                     print(f"[UniRigLoadRiggedMesh] Mesh: {mesh_count} objects, {total_vertices} verts, {total_faces} faces")
@@ -386,6 +388,8 @@ class UniRigLoadRiggedMesh:
                         "skeleton_extents": skeleton_extents
                     }
 
+                    # Close npz file before removing (required for Windows)
+                    data.close()
                     os.remove(skeleton_npz)
 
                     print(f"[UniRigLoadRiggedMesh] Found {num_bones} bones")

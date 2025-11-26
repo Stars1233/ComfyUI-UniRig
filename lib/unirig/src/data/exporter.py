@@ -7,12 +7,7 @@ import subprocess
 import pickle
 import tempfile
 
-try:
-    import open3d as o3d
-    OPEN3D_EQUIPPED = True
-except ImportError:
-    o3d = None
-    OPEN3D_EQUIPPED = False
+import trimesh
 
 class Exporter():
     
@@ -102,13 +97,9 @@ class Exporter():
         format = path.split('.')[-1]
         assert format in ['obj', 'ply']
         if path.endswith('ply'):
-            if not OPEN3D_EQUIPPED:
-                raise RuntimeError("open3d is not available")
-            mesh = o3d.geometry.TriangleMesh()
-            mesh.vertices = o3d.utility.Vector3dVector(vertices)
-            mesh.triangles = o3d.utility.Vector3iVector(faces)
+            mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
             self._safe_make_dir(path)
-            o3d.io.write_triangle_mesh(path, mesh)
+            mesh.export(path)
             return
         name = path.removesuffix('.obj')
         path = name + ".obj"
@@ -130,11 +121,9 @@ class Exporter():
                 print("normal result will not be displayed in .ply format")
             name = path.removesuffix('.ply')
             path = name + ".ply"
-            pc = o3d.geometry.PointCloud()
-            pc.points = o3d.utility.Vector3dVector(vertices)
-            # segment fault when numpy >= 2.0 !! use torch environment
+            pc = trimesh.PointCloud(vertices=vertices)
             self._safe_make_dir(path)
-            o3d.io.write_point_cloud(path, pc)
+            pc.export(path)
             return
         name = path.removesuffix('.obj')
         path = name + ".obj"

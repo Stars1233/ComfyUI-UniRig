@@ -47,9 +47,12 @@ def _check_optional_dependencies():
     return len(missing) == 0
 
 
-# Only run initialization and imports when loaded by ComfyUI, not during pytest
-# This prevents relative import errors when pytest collects test modules
-if 'pytest' not in sys.modules:
+# Only skip initialization when pytest is actually running tests
+# (not just when pytest is installed or imported by another module)
+# PYTEST_CURRENT_TEST is only set when pytest is actively executing tests
+_RUNNING_TESTS = os.environ.get('PYTEST_CURRENT_TEST') is not None
+
+if not _RUNNING_TESTS:
     print("[ComfyUI-UniRig] Initializing custom node...")
 
     # Import node classes

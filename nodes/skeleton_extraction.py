@@ -618,6 +618,9 @@ class UniRigExtractSkeletonNew:
                             texture_height = int(h.item() if hasattr(h, 'item') and h.ndim == 0 else h)
 
                         print(f"[UniRigExtractSkeletonNew] Loaded texture: {texture_width}x{texture_height} {texture_format} ({len(texture_data_base64) // 1024}KB base64)")
+
+                # Close npz file to release handle (required for Windows temp cleanup)
+                preprocess_data.close()
             else:
                 # Fallback: use trimesh data
                 mesh_vertices_original = np.array(trimesh.vertices, dtype=np.float32)
@@ -677,6 +680,8 @@ class UniRigExtractSkeletonNew:
                             else:
                                 print(f"[UniRigExtractSkeletonNew] Warning: names has unexpected shape {raw_names.shape}")
                                 model_bone_names = None
+                        # Close npz file to release handle (required for Windows temp cleanup)
+                        model_data.close()
                     except Exception as e:
                         print(f"[UniRigExtractSkeletonNew] Warning: Could not load model bone names: {e}")
                         import traceback
@@ -989,6 +994,9 @@ class UniRigExtractSkeletonNew:
 
             if 'bone_to_head_vertex' in skeleton_data:
                 skeleton['bone_to_head_vertex'] = skeleton_data['bone_to_head_vertex'].tolist()
+
+            # Close npz file to release handle (required for Windows temp cleanup)
+            skeleton_data.close()
 
             print(f"[UniRigExtractSkeletonNew] Included hierarchy: {len(names_list)} bones with parent relationships")
 

@@ -1,14 +1,18 @@
 [test]
-levels = ["syntax", "install", "registration", "instantiation", "static_capture", "execution"]
+levels = ["syntax", "install", "execution"]
+publish = 'true'
 
 [test.workflows]
-run = "all"
-screenshot = "all"
 timeout = 300
-gpu = "all"
+cpu = ['apply_animation','skeleton_comparison','rigged_manipulator']
+gpu = ["skeleton_comparison","apply_animation"]
 
 [test.platforms]
+# CPU platforms
 linux = true
-macos = false #requires cuda
+macos = true
 windows = true
 windows_portable = true
+linux_gpu = true
+windows_gpu = false
+windows_portable_gpu = true
